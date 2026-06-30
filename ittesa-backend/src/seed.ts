@@ -8,6 +8,19 @@ async function seed() {
   
   const dataSource = app.get(DataSource);
   
+  // Create default roles if not exists
+  const roleCount = await dataSource.query(`SELECT COUNT(*) FROM roles`);
+  if (parseInt(roleCount[0].count) === 0) {
+    await dataSource.query(`
+      INSERT INTO roles (id, name, permissions, "createdAt", "updatedAt")
+      VALUES 
+        (gen_random_uuid(), 'admin', '{}', NOW(), NOW()),
+        (gen_random_uuid(), 'user', '{}', NOW(), NOW()),
+        (gen_random_uuid(), 'hr', '{}', NOW(), NOW())
+    `);
+    console.log('Default roles created: admin, user, hr');
+  }
+  
   // Create default admin user if not exists
   const adminExists = await dataSource.query(
     `SELECT id FROM users WHERE email = 'admin@example.com' LIMIT 1`

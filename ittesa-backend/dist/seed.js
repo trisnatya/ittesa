@@ -40,6 +40,17 @@ const bcrypt = __importStar(require("bcryptjs"));
 async function seed() {
     const app = await core_1.NestFactory.createApplicationContext(app_module_1.AppModule);
     const dataSource = app.get(typeorm_1.DataSource);
+    const roleCount = await dataSource.query(`SELECT COUNT(*) FROM roles`);
+    if (parseInt(roleCount[0].count) === 0) {
+        await dataSource.query(`
+      INSERT INTO roles (id, name, permissions, "createdAt", "updatedAt")
+      VALUES 
+        (gen_random_uuid(), 'admin', '{}', NOW(), NOW()),
+        (gen_random_uuid(), 'user', '{}', NOW(), NOW()),
+        (gen_random_uuid(), 'hr', '{}', NOW(), NOW())
+    `);
+        console.log('Default roles created: admin, user, hr');
+    }
     const adminExists = await dataSource.query(`SELECT id FROM users WHERE email = 'admin@example.com' LIMIT 1`);
     if (adminExists.length === 0) {
         const hashedPassword = await bcrypt.hash('password123', 10);
