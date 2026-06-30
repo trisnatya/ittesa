@@ -12,7 +12,7 @@ async function seed() {
   const roleCount = await dataSource.query(`SELECT COUNT(*) FROM roles`);
   if (parseInt(roleCount[0].count) === 0) {
     await dataSource.query(`
-      INSERT INTO roles (id, name, permissions, "createdAt", "updatedAt")
+      INSERT INTO roles (id, name, permissions, "created_at", "updated_at")
       VALUES 
         (gen_random_uuid(), 'admin', '{}', NOW(), NOW()),
         (gen_random_uuid(), 'user', '{}', NOW(), NOW()),
@@ -35,7 +35,7 @@ async function seed() {
     );
     
     await dataSource.query(
-      `INSERT INTO users (id, email, password, "fullName", "roleId", "isActive", "createdAt", "updatedAt")
+      `INSERT INTO users (id, email, password, full_name, role_id, is_active, "created_at", "updated_at")
        VALUES (gen_random_uuid(), 'admin@example.com', $1, 'Administrator', $2, true, NOW(), NOW())`,
       [hashedPassword, adminRole[0]?.id]
     );
@@ -47,7 +47,7 @@ async function seed() {
   const requestTypeCount = await dataSource.query(`SELECT COUNT(*) FROM request_types`);
   if (parseInt(requestTypeCount[0].count) === 0) {
     await dataSource.query(`
-      INSERT INTO request_types (id, name, description, "isActive", "createdAt", "updatedAt")
+      INSERT INTO request_types (id, name, description, is_active, "created_at", "updated_at")
       VALUES 
         (gen_random_uuid(), 'DPLK', 'Dana Pensiun Lembaga Keuangan', true, NOW(), NOW()),
         (gen_random_uuid(), 'Housing', 'Kebutuhan Perumahan', true, NOW(), NOW()),
@@ -61,7 +61,7 @@ async function seed() {
   const faqCount = await dataSource.query(`SELECT COUNT(*) FROM faqs`);
   if (parseInt(faqCount[0].count) === 0) {
     await dataSource.query(`
-      INSERT INTO faqs (id, question, answer, category, "order", "isActive", "createdAt", "updatedAt")
+      INSERT INTO faqs (id, question, answer, category, sort_order, is_active, "created_at", "updated_at")
       VALUES 
         (gen_random_uuid(), 'Apa itu ITESSA?', 'ITESSA adalah IT Employee Self Service Application, portal self-service untuk karyawan IT.', 'General', 1, true, NOW(), NOW()),
         (gen_random_uuid(), 'Bagaimana cara membuat request baru?', 'Anda dapat membuat request baru melalui menu View Request, pilih jenis request, dan isi formulir yang tersedia.', 'Requests', 1, true, NOW(), NOW()),
