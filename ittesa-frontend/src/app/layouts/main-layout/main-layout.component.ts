@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -8,10 +8,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatBadgeModule } from '@angular/material/badge';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -19,7 +15,6 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [
     CommonModule,
-    AsyncPipe,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -29,125 +24,114 @@ import { AuthService } from '../../services/auth.service';
     MatIconModule,
     MatListModule,
     MatMenuModule,
-    MatDividerModule,
-    MatBadgeModule
+    MatDividerModule
   ],
   template: `
     <mat-sidenav-container class="sidenav-container">
-      <ng-container *ngIf="isHandset$ | async as isHandset">
-        <mat-sidenav 
-          #drawer 
-          class="sidenav" 
-          [mode]="isHandset ? 'over' : 'side'" 
-          [opened]="!isHandset">
-          
-          <div class="sidenav-header">
-            <h1 class="sidenav-logo">ITESSA</h1>
-          </div>
-          
-          <mat-nav-list>
-            <a mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>dashboard</mat-icon>
-              <span matListItemTitle>Dashboard</span>
-            </a>
-            <a mat-list-item routerLink="/employees" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>people</mat-icon>
-              <span matListItemTitle>Employee</span>
-            </a>
-            <a mat-list-item routerLink="/requests" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>description</mat-icon>
-              <span matListItemTitle>View Request</span>
-            </a>
-            
-            <mat-divider></mat-divider>
-            <div mat-subheader>Support</div>
-            
-            <a mat-list-item routerLink="/faqs" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>help</mat-icon>
-              <span matListItemTitle>FAQ</span>
-            </a>
-            <a mat-list-item routerLink="/questions" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>question_answer</mat-icon>
-              <span matListItemTitle>Question</span>
-            </a>
-            
-            <mat-divider></mat-divider>
-            <div mat-subheader>Management</div>
-            
-            <a mat-list-item routerLink="/management/users" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>person</mat-icon>
-              <span matListItemTitle>User Management</span>
-            </a>
-            <a mat-list-item routerLink="/management/roles" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
-              <span matListItemTitle>User Role</span>
-            </a>
-            <a mat-list-item routerLink="/management/email-templates" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>email</mat-icon>
-              <span matListItemTitle>Template Email</span>
-            </a>
-            <a mat-list-item routerLink="/management/user-logs" routerLinkActive="active" (click)="closeSidenavIfHandset()">
-              <mat-icon matListItemIcon>history</mat-icon>
-              <span matListItemTitle>User Log</span>
-            </a>
-            
-            <mat-divider></mat-divider>
-            
-            <a mat-list-item (click)="logout()">
-              <mat-icon matListItemIcon color="warn">logout</mat-icon>
-              <span matListItemTitle>Logout</span>
-            </a>
-          </mat-nav-list>
-        </mat-sidenav>
+      <mat-sidenav #drawer mode="side" opened class="sidenav">
+        <div class="sidenav-header">
+          <h1 class="sidenav-logo">ITESSA</h1>
+        </div>
         
-        <mat-sidenav-content>
-          <mat-toolbar class="mat-elevation-z4">
-            <button mat-icon-button *ngIf="isHandset" (click)="drawer.toggle()">
-              <mat-icon>menu</mat-icon>
-            </button>
-            <span class="toolbar-title">ITESSA</span>
-            <span class="spacer"></span>
-            
-            <button mat-icon-button [matMenuTriggerFor]="notificationMenu">
-              <mat-icon [matBadge]="notificationCount" matBadgeColor="warn" [matBadgeHidden]="notificationCount === 0">notifications</mat-icon>
-            </button>
-            <mat-menu #notificationMenu="matMenu" class="notification-menu">
-              <div class="notification-header">
-                <span>Notifications</span>
-              </div>
-              <button mat-menu-item disabled>
-                <mat-icon>info</mat-icon>
-                <span>No new notifications</span>
-              </button>
-            </mat-menu>
-            
-            <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
-              <mat-icon>account_circle</mat-icon>
-              <span class="user-name">{{ getUserFullName() }}</span>
-              <mat-icon>arrow_drop_down</mat-icon>
-            </button>
-            <mat-menu #userMenu="matMenu">
-              <button mat-menu-item disabled>
-                <mat-icon>person</mat-icon>
-                <span>{{ getUserEmail() }}</span>
-              </button>
-              <button mat-menu-item disabled>
-                <mat-icon>badge</mat-icon>
-                <span>{{ getUserRole() }}</span>
-              </button>
-              <mat-divider></mat-divider>
-              <button mat-menu-item (click)="logout()">
-                <mat-icon color="warn">logout</mat-icon>
-                <span>Logout</span>
-              </button>
-            </mat-menu>
-          </mat-toolbar>
+        <mat-nav-list>
+          <a mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Dashboard</span>
+          </a>
+          <a mat-list-item routerLink="/employees" routerLinkActive="active">
+            <mat-icon matListItemIcon>people</mat-icon>
+            <span matListItemTitle>Employee</span>
+          </a>
+          <a mat-list-item routerLink="/requests" routerLinkActive="active">
+            <mat-icon matListItemIcon>description</mat-icon>
+            <span matListItemTitle>View Request</span>
+          </a>
           
-          <div class="main-content-container">
-            <router-outlet></router-outlet>
-          </div>
-        </mat-sidenav-content>
-      </ng-container>
+          <mat-divider></mat-divider>
+          <div mat-subheader>Support</div>
+          
+          <a mat-list-item routerLink="/faqs" routerLinkActive="active">
+            <mat-icon matListItemIcon>help</mat-icon>
+            <span matListItemTitle>FAQ</span>
+          </a>
+          <a mat-list-item routerLink="/questions" routerLinkActive="active">
+            <mat-icon matListItemIcon>question_answer</mat-icon>
+            <span matListItemTitle>Question</span>
+          </a>
+          
+          <mat-divider></mat-divider>
+          <div mat-subheader>Management</div>
+          
+          <a mat-list-item routerLink="/management/users" routerLinkActive="active">
+            <mat-icon matListItemIcon>person</mat-icon>
+            <span matListItemTitle>User Management</span>
+          </a>
+          <a mat-list-item routerLink="/management/roles" routerLinkActive="active">
+            <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+            <span matListItemTitle>User Role</span>
+          </a>
+          <a mat-list-item routerLink="/management/email-templates" routerLinkActive="active">
+            <mat-icon matListItemIcon>email</mat-icon>
+            <span matListItemTitle>Template Email</span>
+          </a>
+          <a mat-list-item routerLink="/management/user-logs" routerLinkActive="active">
+            <mat-icon matListItemIcon>history</mat-icon>
+            <span matListItemTitle>User Log</span>
+          </a>
+          
+          <mat-divider></mat-divider>
+          
+          <a mat-list-item (click)="logout()">
+            <mat-icon matListItemIcon color="warn">logout</mat-icon>
+            <span matListItemTitle>Logout</span>
+          </a>
+        </mat-nav-list>
+      </mat-sidenav>
+      
+      <mat-sidenav-content>
+        <mat-toolbar class="mat-elevation-z4">
+          <span class="toolbar-title">ITESSA</span>
+          <span class="spacer"></span>
+          
+          <button mat-icon-button [matMenuTriggerFor]="notificationMenu">
+            <mat-icon>notifications</mat-icon>
+          </button>
+          <mat-menu #notificationMenu="matMenu" class="notification-menu">
+            <div class="notification-header">
+              <span>Notifications</span>
+            </div>
+            <button mat-menu-item disabled>
+              <mat-icon>info</mat-icon>
+              <span>No new notifications</span>
+            </button>
+          </mat-menu>
+          
+          <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+            <mat-icon>account_circle</mat-icon>
+            <span class="user-name">{{ getUserFullName() }}</span>
+            <mat-icon>arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #userMenu="matMenu">
+            <button mat-menu-item disabled>
+              <mat-icon>person</mat-icon>
+              <span>{{ getUserEmail() }}</span>
+            </button>
+            <button mat-menu-item disabled>
+              <mat-icon>badge</mat-icon>
+              <span>{{ getUserRole() }}</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="logout()">
+              <mat-icon color="warn">logout</mat-icon>
+              <span>Logout</span>
+            </button>
+          </mat-menu>
+        </mat-toolbar>
+        
+        <div class="main-content-container">
+          <router-outlet></router-outlet>
+        </div>
+      </mat-sidenav-content>
     </mat-sidenav-container>
   `,
   styles: [`
@@ -275,20 +259,12 @@ import { AuthService } from '../../services/auth.service';
   `]
 })
 export class MainLayoutComponent implements OnInit {
-  isHandset$: Observable<boolean>;
   currentUser: any = null;
-  notificationCount = 0;
 
   constructor(
-    private breakpointObserver: BreakpointObserver,
     private authService: AuthService,
     private router: Router
-  ) {
-    this.isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset)
-      .pipe(
-        map(result => result.matches)
-      );
-  }
+  ) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
