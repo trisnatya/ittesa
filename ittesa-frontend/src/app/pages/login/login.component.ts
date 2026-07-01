@@ -154,12 +154,19 @@ export class LoginComponent {
     this.error = '';
     this.loading = true;
 
+    console.log('Login - Attempting login for:', this.email);
+    
     this.authService.login(this.email, this.password).subscribe({
-      next: () => {
+      next: (response: any) => {
+        console.log('Login - Success! Response:', response);
+        console.log('Login - Token stored:', !!localStorage.getItem('token'));
+        console.log('Login - User stored:', !!localStorage.getItem('user'));
+        
         this.snackBar.open('Login successful!', 'Close', { duration: 3000 });
-        this.router.navigate(['/']);
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
+        console.error('Login - Error:', err);
         this.error = err.error?.message || 'Invalid email or password';
         this.loading = false;
       }

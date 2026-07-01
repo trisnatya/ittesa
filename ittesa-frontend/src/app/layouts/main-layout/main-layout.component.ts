@@ -34,15 +34,15 @@ import { AuthService } from '../../services/auth.service';
         </div>
         
         <mat-nav-list>
-          <a mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <a mat-list-item routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-icon matListItemIcon>dashboard</mat-icon>
             <span matListItemTitle>Dashboard</span>
           </a>
-          <a mat-list-item routerLink="/employees" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/employees" routerLinkActive="active">
             <mat-icon matListItemIcon>people</mat-icon>
             <span matListItemTitle>Employee</span>
           </a>
-          <a mat-list-item routerLink="/requests" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/requests" routerLinkActive="active">
             <mat-icon matListItemIcon>description</mat-icon>
             <span matListItemTitle>View Request</span>
           </a>
@@ -50,11 +50,11 @@ import { AuthService } from '../../services/auth.service';
           <mat-divider></mat-divider>
           <div mat-subheader>Support</div>
           
-          <a mat-list-item routerLink="/faqs" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/faqs" routerLinkActive="active">
             <mat-icon matListItemIcon>help</mat-icon>
             <span matListItemTitle>FAQ</span>
           </a>
-          <a mat-list-item routerLink="/questions" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/questions" routerLinkActive="active">
             <mat-icon matListItemIcon>question_answer</mat-icon>
             <span matListItemTitle>Question</span>
           </a>
@@ -62,19 +62,19 @@ import { AuthService } from '../../services/auth.service';
           <mat-divider></mat-divider>
           <div mat-subheader>Management</div>
           
-          <a mat-list-item routerLink="/management/users" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/management/users" routerLinkActive="active">
             <mat-icon matListItemIcon>person</mat-icon>
             <span matListItemTitle>User Management</span>
           </a>
-          <a mat-list-item routerLink="/management/roles" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/management/roles" routerLinkActive="active">
             <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
             <span matListItemTitle>User Role</span>
           </a>
-          <a mat-list-item routerLink="/management/email-templates" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/management/email-templates" routerLinkActive="active">
             <mat-icon matListItemIcon>email</mat-icon>
             <span matListItemTitle>Template Email</span>
           </a>
-          <a mat-list-item routerLink="/management/user-logs" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard/management/user-logs" routerLinkActive="active">
             <mat-icon matListItemIcon>history</mat-icon>
             <span matListItemTitle>User Log</span>
           </a>
