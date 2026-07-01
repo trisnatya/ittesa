@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '@/services/api';
 import { useAuthStore } from '@/stores/authStore';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
@@ -94,10 +94,13 @@ export function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Default credentials:</p>
-          <p className="mt-1">Email: <span className="font-medium">admin@example.com</span></p>
-          <p>Password: <span className="font-medium">password123</span></p>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
+              Register here
+            </Link>
+          </p>
         </div>
       </div>
     </div>
