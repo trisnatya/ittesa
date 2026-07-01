@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { Employee } from '../../models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-employees',
@@ -262,6 +263,6 @@ export class EmployeesComponent implements OnInit {
   }
 
   exportData(): void {
-    window.open('http://localhost:3000/api/employees/export', '_blank');
+    window.open(`${environment.apiUrl}/employees/export`, '_blank');
   }
 }

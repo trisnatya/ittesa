@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { User, LoginResponse } from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,7 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`http://localhost:3000/api/auth/login`, { email, password }).pipe(
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/login`, { email, password }).pipe(
       tap(response => {
         localStorage.setItem('token', response.access_token);
         localStorage.setItem('user', JSON.stringify(response.user));
@@ -29,7 +30,7 @@ export class AuthService {
   }
 
   register(data: { email: string; password: string; fullName: string }): Observable<any> {
-    return this.http.post(`http://localhost:3000/api/auth/register`, data);
+    return this.http.post(`${environment.apiUrl}/auth/register`, data);
   }
 
   logout(): void {

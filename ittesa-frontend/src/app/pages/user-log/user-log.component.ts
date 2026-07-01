@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { UserLog } from '../../models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-user-log',
@@ -193,6 +194,6 @@ export class UserLogComponent implements OnInit {
   }
 
   exportLogs(): void {
-    window.open('http://localhost:3000/api/user-logs/export', '_blank');
+    window.open(`${environment.apiUrl}/user-logs/export`, '_blank');
   }
 }
