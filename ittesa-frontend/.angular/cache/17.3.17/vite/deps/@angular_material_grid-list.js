@@ -3,11 +3,9 @@ import {
   MatCommonModule,
   MatLine,
   MatLineModule,
+  coerceNumberProperty,
   setLines
-} from "./chunk-HKWI7KS2.js";
-import {
-  coerceNumberProperty
-} from "./chunk-7GATKXFH.js";
+} from "./chunk-F4PJ6YDY.js";
 import "./chunk-APQJ6POP.js";
 import {
   ChangeDetectionStrategy,

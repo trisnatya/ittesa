@@ -1,260 +1,88 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatDividerModule } from '@angular/material/divider';
+import { RouterOutlet, RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    MatSidenavModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    MatListModule,
-    MatMenuModule,
-    MatDividerModule
-  ],
+  imports: [CommonModule, RouterOutlet, RouterLink],
   template: `
-    <mat-sidenav-container class="sidenav-container">
-      <mat-sidenav #drawer mode="side" opened class="sidenav">
-        <div class="sidenav-header">
-          <h1 class="sidenav-logo">ITESSA</h1>
+    <div style="display: flex; height: 100vh;">
+      <!-- Sidebar -->
+      <div style="width: 250px; background: #1e3a5f; color: white; padding: 20px;">
+        <h2 style="margin: 0 0 30px 0; text-align: center;">ITESSA</h2>
+        
+        <nav>
+          <a routerLink="/dashboard" routerLinkActive="active" 
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            Dashboard
+          </a>
+          <a routerLink="/dashboard/employees" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            Employee
+          </a>
+          <a routerLink="/dashboard/requests" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            View Request
+          </a>
+          <a routerLink="/dashboard/faqs" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            FAQ
+          </a>
+          <a routerLink="/dashboard/questions" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            Question
+          </a>
+          <hr style="border-color: #3d5a80; margin: 20px 0;">
+          <a routerLink="/dashboard/management/users" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            User Management
+          </a>
+          <a routerLink="/dashboard/management/roles" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            User Role
+          </a>
+          <a routerLink="/dashboard/management/email-templates" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            Template Email
+          </a>
+          <a routerLink="/dashboard/management/user-logs" routerLinkActive="active"
+             style="display: block; padding: 12px; color: white; text-decoration: none; margin-bottom: 8px; border-radius: 4px;">
+            User Log
+          </a>
+          <hr style="border-color: #3d5a80; margin: 20px 0;">
+          <button (click)="logout()" 
+                  style="width: 100%; padding: 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Logout
+          </button>
+        </nav>
+      </div>
+      
+      <!-- Main Content -->
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <!-- Header -->
+        <div style="background: #f8f9fa; padding: 15px 25px; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0;">ITESSA Dashboard</h3>
+          <div>
+            <span>{{ getUserFullName() }}</span>
+            <span style="margin-left: 15px; color: #6c757d;">{{ getUserRole() }}</span>
+          </div>
         </div>
         
-        <mat-nav-list>
-          <a mat-list-item routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-            <mat-icon matListItemIcon>dashboard</mat-icon>
-            <span matListItemTitle>Dashboard</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/employees" routerLinkActive="active">
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Employee</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/requests" routerLinkActive="active">
-            <mat-icon matListItemIcon>description</mat-icon>
-            <span matListItemTitle>View Request</span>
-          </a>
-          
-          <mat-divider></mat-divider>
-          <div mat-subheader>Support</div>
-          
-          <a mat-list-item routerLink="/dashboard/faqs" routerLinkActive="active">
-            <mat-icon matListItemIcon>help</mat-icon>
-            <span matListItemTitle>FAQ</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/questions" routerLinkActive="active">
-            <mat-icon matListItemIcon>question_answer</mat-icon>
-            <span matListItemTitle>Question</span>
-          </a>
-          
-          <mat-divider></mat-divider>
-          <div mat-subheader>Management</div>
-          
-          <a mat-list-item routerLink="/dashboard/management/users" routerLinkActive="active">
-            <mat-icon matListItemIcon>person</mat-icon>
-            <span matListItemTitle>User Management</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/management/roles" routerLinkActive="active">
-            <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
-            <span matListItemTitle>User Role</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/management/email-templates" routerLinkActive="active">
-            <mat-icon matListItemIcon>email</mat-icon>
-            <span matListItemTitle>Template Email</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/management/user-logs" routerLinkActive="active">
-            <mat-icon matListItemIcon>history</mat-icon>
-            <span matListItemTitle>User Log</span>
-          </a>
-          
-          <mat-divider></mat-divider>
-          
-          <a mat-list-item (click)="logout()">
-            <mat-icon matListItemIcon color="warn">logout</mat-icon>
-            <span matListItemTitle>Logout</span>
-          </a>
-        </mat-nav-list>
-      </mat-sidenav>
-      
-      <mat-sidenav-content>
-        <mat-toolbar class="mat-elevation-z4">
-          <span class="toolbar-title">ITESSA</span>
-          <span class="spacer"></span>
-          
-          <button mat-icon-button [matMenuTriggerFor]="notificationMenu">
-            <mat-icon>notifications</mat-icon>
-          </button>
-          <mat-menu #notificationMenu="matMenu" class="notification-menu">
-            <div class="notification-header">
-              <span>Notifications</span>
-            </div>
-            <button mat-menu-item disabled>
-              <mat-icon>info</mat-icon>
-              <span>No new notifications</span>
-            </button>
-          </mat-menu>
-          
-          <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
-            <mat-icon>account_circle</mat-icon>
-            <span class="user-name">{{ getUserFullName() }}</span>
-            <mat-icon>arrow_drop_down</mat-icon>
-          </button>
-          <mat-menu #userMenu="matMenu">
-            <button mat-menu-item disabled>
-              <mat-icon>person</mat-icon>
-              <span>{{ getUserEmail() }}</span>
-            </button>
-            <button mat-menu-item disabled>
-              <mat-icon>badge</mat-icon>
-              <span>{{ getUserRole() }}</span>
-            </button>
-            <mat-divider></mat-divider>
-            <button mat-menu-item (click)="logout()">
-              <mat-icon color="warn">logout</mat-icon>
-              <span>Logout</span>
-            </button>
-          </mat-menu>
-        </mat-toolbar>
-        
-        <div class="main-content-container">
+        <!-- Content Area -->
+        <div style="flex: 1; padding: 25px; overflow: auto;">
           <router-outlet></router-outlet>
         </div>
-      </mat-sidenav-content>
-    </mat-sidenav-container>
+      </div>
+    </div>
   `,
   styles: [`
-    .sidenav-container {
-      height: 100vh;
+    a:hover {
+      background: #3d5a80 !important;
     }
-    
-    .sidenav {
-      width: 280px;
-      background: linear-gradient(180deg, #1e3a5f 0%, #0d1f33 100%);
-      color: white;
-    }
-    
-    .sidenav-header {
-      padding: 20px 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .sidenav-logo {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0;
-      background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .mat-mdc-nav-list {
-      padding-top: 8px;
-    }
-    
-    .mat-mdc-nav-list a {
-      margin: 4px 8px;
-      border-radius: 8px;
-      height: 48px;
-      color: rgba(255, 255, 255, 0.87);
-      transition: all 0.3s ease;
-    }
-    
-    .mat-mdc-nav-list a:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .mat-mdc-nav-list a.active {
-      background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%);
-      color: white;
-      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-    }
-    
-    .mat-mdc-nav-list a mat-icon {
-      color: rgba(255, 255, 255, 0.7);
-      margin-right: 12px;
-    }
-    
-    .mat-mdc-nav-list a.active mat-icon {
-      color: white;
-    }
-    
-    [mat-subheader] {
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 16px 16px 8px;
-    }
-    
-    mat-divider {
-      margin: 8px 16px;
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    mat-toolbar {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: white;
-    }
-    
-    .toolbar-title {
-      font-weight: 600;
-      color: #1e3a5f;
-    }
-    
-    .spacer {
-      flex: 1 1 auto;
-    }
-    
-    .user-button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .user-name {
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .main-content-container {
-      padding: 24px;
-      background: #f5f7fa;
-      min-height: calc(100vh - 64px);
-    }
-    
-    .notification-header {
-      padding: 12px 16px;
-      font-weight: 600;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    
-    @media (max-width: 600px) {
-      .main-content-container {
-        padding: 16px;
-      }
-      
-      .user-name {
-        display: none;
-      }
+    a.active {
+      background: #0d1f33 !important;
     }
   `]
 })
@@ -280,10 +108,6 @@ export class MainLayoutComponent implements OnInit {
 
   getUserRole(): string {
     return this.currentUser?.role?.name || 'User';
-  }
-
-  closeSidenavIfHandset(): void {
-    // Sidenav will auto-close on small screens via mode binding
   }
 
   logout(): void {
