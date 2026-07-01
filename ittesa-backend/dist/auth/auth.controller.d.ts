@@ -23,4 +23,13 @@ export declare class AuthController {
         updatedAt: Date;
     }>;
     getProfile(req: any): Promise<import("../users/user.entity").User>;
+    testPassword(body: {
+        password: string;
+        hash: string;
+    }): Promise<{
+        password: string;
+        hash: string;
+        isValid: boolean;
+        generatedHash: string;
+    }>;
 }

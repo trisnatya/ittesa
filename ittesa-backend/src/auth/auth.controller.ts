@@ -3,6 +3,7 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './auth.dto';
+import * as bcrypt from 'bcryptjs';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -24,5 +25,16 @@ export class AuthController {
   @ApiBearerAuth()
   async getProfile(@Request() req) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Post('test-password')
+  async testPassword(@Body() body: { password: string; hash: string }) {
+    const isValid = await bcrypt.compare(body.password, body.hash);
+    return { 
+      password: body.password, 
+      hash: body.hash, 
+      isValid,
+      generatedHash: await bcrypt.hash(body.password, 10)
+    };
   }
 }
