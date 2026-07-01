@@ -97,23 +97,34 @@ export class MainLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    console.log('MainLayoutComponent ngOnInit called');
+    
     // Check authentication manually
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
+    
+    console.log('Token exists:', !!token);
+    console.log('User string exists:', !!userStr);
+    console.log('User string:', userStr);
     
     if (token && userStr) {
       try {
         this.currentUser = JSON.parse(userStr);
         this.isAuthenticated = true;
+        console.log('User parsed successfully:', this.currentUser);
       } catch (e) {
+        console.error('Error parsing user:', e);
         this.isAuthenticated = false;
       }
     }
     
     if (!this.isAuthenticated) {
+      console.log('Not authenticated, redirecting to login');
       this.router.navigate(['/login']);
       return;
     }
+    
+    console.log('Authenticated, rendering dashboard');
   }
 
   getUserFullName(): string {
