@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, Router } from '@angular/router';
+import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-main-layout',
@@ -88,6 +89,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class MainLayoutComponent implements OnInit {
   currentUser: any = null;
+  isAuthenticated = false;
 
   constructor(
     private authService: AuthService,
@@ -95,7 +97,23 @@ export class MainLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
+    // Check authentication manually
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        this.currentUser = JSON.parse(userStr);
+        this.isAuthenticated = true;
+      } catch (e) {
+        this.isAuthenticated = false;
+      }
+    }
+    
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/login']);
+      return;
+    }
   }
 
   getUserFullName(): string {
