@@ -1,159 +1,204 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { EmailTemplate } from '../../models';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-email-template',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule
+  ],
   template: `
-    <div class="space-y-6">
-      <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">Email Template Management</h1>
-        <button (click)="openModal()" class="btn btn-primary">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-          </svg>
+    <div class="page-container">
+      <div class="page-header">
+        <h1 class="page-title">Email Template Management</h1>
+        <button mat-raised-button color="primary" (click)="openAddDialog()">
+          <mat-icon>add</mat-icon>
           Add Template
         </button>
       </div>
 
       <!-- Template Table -->
-      <div class="card">
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Subject</th>
-                <th>Preview</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let template of templates">
-                <td class="font-medium">{{ template.name }}</td>
-                <td>{{ template.subject }}</td>
-                <td class="max-w-xs truncate">{{ template.body }}</td>
-                <td>
-                  <div class="flex gap-2">
-                    <button (click)="sendEmail(template)" class="btn btn-sm btn-success">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                      </svg>
-                      Send
-                    </button>
-                    <button (click)="editTemplate(template)" class="btn btn-sm btn-secondary">Edit</button>
-                    <button (click)="deleteTemplate(template)" class="btn btn-sm btn-danger">Delete</button>
-                  </div>
+      <mat-card class="table-card">
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="dataSource" matSort class="templates-table">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+                <td mat-cell *matCellDef="let template">{{ template.name }}</td>
+              </ng-container>
+
+              <!-- Subject Column -->
+              <ng-container matColumnDef="subject">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Subject</th>
+                <td mat-cell *matCellDef="let template">{{ template.subject }}</td>
+              </ng-container>
+
+              <!-- Preview Column -->
+              <ng-container matColumnDef="body">
+                <th mat-header-cell *matHeaderCellDef>Preview</th>
+                <td mat-cell *matCellDef="let template" class="preview-cell">{{ template.body | slice:0:50 }}...</td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let template">
+                  <button mat-icon-button matTooltip="Send Email" color="primary" (click)="sendEmail(template)">
+                    <mat-icon>send</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Edit" (click)="editTemplate(template)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteTemplate(template)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </td>
-              </tr>
-              <tr *ngIf="templates.length === 0">
-                <td colspan="4" class="text-center py-8 text-gray-500">
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+              <!-- No Data Row -->
+              <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
                   No templates found
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </table>
 
-      <!-- Create/Edit Modal -->
-      <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
-        <div class="modal w-full max-w-2xl" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3 class="modal-title">{{ isEdit ? 'Edit Template' : 'Add Template' }}</h3>
-            <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
           </div>
-          <div class="modal-body">
-            <div class="space-y-4">
-              <div class="form-group">
-                <label class="form-label">Template Name</label>
-                <input type="text" [(ngModel)]="formData.name" class="form-input" placeholder="e.g. Welcome Email" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Subject</label>
-                <input type="text" [(ngModel)]="formData.subject" class="form-input" placeholder="Email subject" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Body</label>
-                <textarea [(ngModel)]="formData.body" class="form-input" rows="8" placeholder="Email body content..."></textarea>
-                <p class="text-xs text-gray-500 mt-1">Use {{'{{'}}name{{'}}'}}, {{'{{'}}email{{'}}'}} for dynamic replacements</p>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button (click)="closeModal()" class="btn btn-secondary">Cancel</button>
-            <button (click)="saveTemplate()" class="btn btn-primary">Save</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Send Email Modal -->
-      <div *ngIf="showSendModal" class="modal-overlay" (click)="closeSendModal()">
-        <div class="modal w-full max-w-md" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3 class="modal-title">Send Email</h3>
-            <button (click)="closeSendModal()" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="space-y-4">
-              <div class="form-group">
-                <label class="form-label">Recipient Email</label>
-                <input type="email" [(ngModel)]="recipientEmail" class="form-input" placeholder="recipient@example.com" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Replacements (JSON)</label>
-                <textarea [(ngModel)]="replacementsJson" class="form-input" rows="4" placeholder='{"name": "John", "company": "Acme"}'></textarea>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button (click)="closeSendModal()" class="btn btn-secondary">Cancel</button>
-            <button (click)="confirmSendEmail()" class="btn btn-primary">Send</button>
-          </div>
-        </div>
-      </div>
+        </mat-card-content>
+      </mat-card>
     </div>
-  `
+  `,
+  styles: [`
+    .page-container {
+      padding: 1.5rem;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0;
+    }
+    .table-card {
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    .templates-table {
+      width: 100%;
+    }
+    .preview-cell {
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .no-data-cell {
+      text-align: center;
+      padding: 3rem;
+      color: #9ca3af;
+    }
+    @media (max-width: 768px) {
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  `]
 })
-export class EmailTemplateComponent implements OnInit {
+export class EmailTemplateComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   templates: EmailTemplate[] = [];
+  dataSource = new MatTableDataSource<EmailTemplate>();
+  displayedColumns = ['name', 'subject', 'body', 'actions'];
   showModal = false;
   showSendModal = false;
   isEdit = false;
   selectedTemplate: EmailTemplate | null = null;
   recipientEmail = '';
   replacementsJson = '{}';
+  loading = false;
   formData: any = { name: '', subject: '', body: '' };
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadTemplates();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   loadTemplates(): void {
+    this.loading = true;
     this.apiService.get<EmailTemplate[]>('/email-templates').subscribe({
-      next: (data) => this.templates = data,
-      error: () => this.templates = []
+      next: (data) => {
+        this.templates = data;
+        this.dataSource.data = this.templates;
+        this.loading = false;
+      },
+      error: () => {
+        this.templates = [];
+        this.dataSource.data = [];
+        this.loading = false;
+      }
     });
   }
 
-  openModal(): void {
+  openAddDialog(): void {
     this.isEdit = false;
     this.formData = { name: '', subject: '', body: '' };
-    this.showModal = true;
+    this.snackBar.open('Add template dialog - to be implemented', 'Close', { duration: 3000 });
   }
 
   closeModal(): void {
@@ -163,7 +208,7 @@ export class EmailTemplateComponent implements OnInit {
   editTemplate(template: EmailTemplate): void {
     this.isEdit = true;
     this.formData = { ...template };
-    this.showModal = true;
+    this.snackBar.open(`Editing template: ${template.name}`, 'Close', { duration: 2000 });
   }
 
   saveTemplate(): void {
@@ -173,18 +218,28 @@ export class EmailTemplateComponent implements OnInit {
 
     action.subscribe({
       next: () => {
+        this.snackBar.open('Template saved successfully', 'Close', { duration: 3000 });
         this.closeModal();
         this.loadTemplates();
       },
-      error: (err) => console.error('Failed to save template:', err)
+      error: (err) => {
+        console.error('Failed to save template:', err);
+        this.snackBar.open('Failed to save template', 'Close', { duration: 3000 });
+      }
     });
   }
 
   deleteTemplate(template: EmailTemplate): void {
-    if (!confirm('Delete this template?')) return;
+    if (!confirm(`Delete template ${template.name}?`)) return;
     this.apiService.delete(`/email-templates/${template.id}`).subscribe({
-      next: () => this.loadTemplates(),
-      error: (err) => console.error('Failed to delete template:', err)
+      next: () => {
+        this.snackBar.open('Template deleted successfully', 'Close', { duration: 3000 });
+        this.loadTemplates();
+      },
+      error: (err) => {
+        console.error('Failed to delete template:', err);
+        this.snackBar.open('Failed to delete template', 'Close', { duration: 3000 });
+      }
     });
   }
 
@@ -192,7 +247,7 @@ export class EmailTemplateComponent implements OnInit {
     this.selectedTemplate = template;
     this.recipientEmail = '';
     this.replacementsJson = '{}';
-    this.showSendModal = true;
+    this.snackBar.open('Send email dialog - to be implemented', 'Close', { duration: 3000 });
   }
 
   closeSendModal(): void {
@@ -201,7 +256,10 @@ export class EmailTemplateComponent implements OnInit {
   }
 
   confirmSendEmail(): void {
-    if (!this.selectedTemplate || !this.recipientEmail) return;
+    if (!this.selectedTemplate || !this.recipientEmail) {
+      this.snackBar.open('Please enter recipient email', 'Close', { duration: 3000 });
+      return;
+    }
 
     let replacements: any = {};
     try {
@@ -215,12 +273,12 @@ export class EmailTemplateComponent implements OnInit {
       replacements
     }).subscribe({
       next: () => {
-        alert('Email sent successfully!');
+        this.snackBar.open('Email sent successfully!', 'Close', { duration: 3000 });
         this.closeSendModal();
       },
       error: (err) => {
         console.error('Failed to send email:', err);
-        alert('Failed to send email');
+        this.snackBar.open('Failed to send email', 'Close', { duration: 3000 });
       }
     });
   }

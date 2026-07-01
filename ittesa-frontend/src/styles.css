@@ -1,4 +1,25 @@
-/* You can add global styles to this file, and also import other style files */
+/* Angular Material Custom Theme */
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$ittesa-primary: mat.define-palette(mat.$blue-palette, 700, 500, 900);
+$ittesa-accent: mat.define-palette(mat.$light-blue-palette, A200, A100, A400);
+$ittesa-warn: mat.define-palette(mat.$red-palette);
+
+$ittesa-theme: mat.define-light-theme((
+  color: (
+    primary: $ittesa-primary,
+    accent: $ittesa-accent,
+    warn: $ittesa-warn,
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+@include mat.all-component-themes($ittesa-theme);
+
+/* Custom CSS Variables */
 :root {
   --primary-50: #eff6ff;
   --primary-100: #dbeafe;

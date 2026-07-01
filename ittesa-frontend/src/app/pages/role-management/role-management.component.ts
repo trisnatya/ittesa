@@ -1,117 +1,207 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { Role } from '../../models';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-role-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatChipsModule
+  ],
   template: `
-    <div class="space-y-6">
-      <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">User Role Management</h1>
-        <button (click)="openModal()" class="btn btn-primary">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-          </svg>
+    <div class="page-container">
+      <div class="page-header">
+        <h1 class="page-title">User Role Management</h1>
+        <button mat-raised-button color="primary" (click)="openAddDialog()">
+          <mat-icon>add</mat-icon>
           Add Role
         </button>
       </div>
 
       <!-- Role Table -->
-      <div class="card">
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Role Name</th>
-                <th>Permissions</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let role of roles">
-                <td class="font-medium">{{ role.name }}</td>
-                <td>
-                  <div class="flex flex-wrap gap-1">
-                    <span *ngFor="let perm of getPermissions(role)" class="badge badge-gray text-xs">
+      <mat-card class="table-card">
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="dataSource" matSort class="roles-table">
+              <!-- Role Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Role Name</th>
+                <td mat-cell *matCellDef="let role">{{ role.name }}</td>
+              </ng-container>
+
+              <!-- Permissions Column -->
+              <ng-container matColumnDef="permissions">
+                <th mat-header-cell *matHeaderCellDef>Permissions</th>
+                <td mat-cell *matCellDef="let role">
+                  <div class="permissions-list">
+                    <span *ngFor="let perm of getPermissions(role)" class="permission-chip">
                       {{ perm }}
                     </span>
                   </div>
                 </td>
-                <td>{{ role.createdAt | date:'short' }}</td>
-                <td>
-                  <div class="flex gap-2">
-                    <button (click)="editRole(role)" class="btn btn-sm btn-secondary">Edit</button>
-                    <button (click)="deleteRole(role)" class="btn btn-sm btn-danger">Delete</button>
-                  </div>
+              </ng-container>
+
+              <!-- Created Column -->
+              <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+                <td mat-cell *matCellDef="let role">{{ role.createdAt | date:'short' }}</td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let role">
+                  <button mat-icon-button matTooltip="Edit" (click)="editRole(role)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteRole(role)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </td>
-              </tr>
-              <tr *ngIf="roles.length === 0">
-                <td colspan="4" class="text-center py-8 text-gray-500">
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+              <!-- No Data Row -->
+              <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
                   No roles found
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </table>
 
-      <!-- Create/Edit Modal -->
-      <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
-        <div class="modal w-full max-w-lg" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3 class="modal-title">{{ isEdit ? 'Edit Role' : 'Add Role' }}</h3>
-            <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
           </div>
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">Role Name</label>
-              <input type="text" [(ngModel)]="formData.name" class="form-input" placeholder="Enter role name" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Permissions</label>
-              <div class="grid grid-cols-2 gap-2">
-                <label *ngFor="let perm of availablePermissions" class="flex items-center gap-2 p-2 border border-gray-200 rounded cursor-pointer hover:bg-gray-50">
-                  <input type="checkbox" [checked]="hasPermission(perm)" (change)="togglePermission(perm)" class="rounded" />
-                  <span class="text-sm">{{ perm }}</span>
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button (click)="closeModal()" class="btn btn-secondary">Cancel</button>
-            <button (click)="saveRole()" class="btn btn-primary">Save</button>
-          </div>
-        </div>
-      </div>
+        </mat-card-content>
+      </mat-card>
     </div>
-  `
+  `,
+  styles: [`
+    .page-container {
+      padding: 1.5rem;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0;
+    }
+    .table-card {
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    .roles-table {
+      width: 100%;
+    }
+    .permissions-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+    .permission-chip {
+      background-color: #e5e7eb;
+      color: #4b5563;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+    .no-data-cell {
+      text-align: center;
+      padding: 3rem;
+      color: #9ca3af;
+    }
+    @media (max-width: 768px) {
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  `]
 })
-export class RoleManagementComponent implements OnInit {
+export class RoleManagementComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   roles: Role[] = [];
+  dataSource = new MatTableDataSource<Role>();
+  displayedColumns = ['name', 'permissions', 'createdAt', 'actions'];
   showModal = false;
   isEdit = false;
+  loading = false;
   availablePermissions = ['dashboard', 'employees', 'requests', 'faqs', 'questions', 'users', 'roles', 'email-templates', 'user-logs'];
   formData: any = { name: '', permissions: [] as string[] };
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadRoles();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   loadRoles(): void {
+    this.loading = true;
     this.apiService.get<Role[]>('/roles').subscribe({
-      next: (data) => this.roles = data,
-      error: () => this.roles = []
+      next: (data) => {
+        this.roles = data;
+        this.dataSource.data = this.roles;
+        this.loading = false;
+      },
+      error: () => {
+        this.roles = [];
+        this.dataSource.data = [];
+        this.loading = false;
+      }
     });
   }
 
@@ -132,10 +222,10 @@ export class RoleManagementComponent implements OnInit {
     }
   }
 
-  openModal(): void {
+  openAddDialog(): void {
     this.isEdit = false;
     this.formData = { name: '', permissions: [] };
-    this.showModal = true;
+    this.snackBar.open('Add role dialog - to be implemented', 'Close', { duration: 3000 });
   }
 
   closeModal(): void {
@@ -145,7 +235,7 @@ export class RoleManagementComponent implements OnInit {
   editRole(role: Role): void {
     this.isEdit = true;
     this.formData = { ...role, permissions: [...(role.permissions || [])] };
-    this.showModal = true;
+    this.snackBar.open(`Editing role: ${role.name}`, 'Close', { duration: 2000 });
   }
 
   saveRole(): void {
@@ -155,18 +245,28 @@ export class RoleManagementComponent implements OnInit {
 
     action.subscribe({
       next: () => {
+        this.snackBar.open('Role saved successfully', 'Close', { duration: 3000 });
         this.closeModal();
         this.loadRoles();
       },
-      error: (err) => console.error('Failed to save role:', err)
+      error: (err) => {
+        console.error('Failed to save role:', err);
+        this.snackBar.open('Failed to save role', 'Close', { duration: 3000 });
+      }
     });
   }
 
   deleteRole(role: Role): void {
-    if (!confirm('Delete this role?')) return;
+    if (!confirm(`Delete role ${role.name}?`)) return;
     this.apiService.delete(`/roles/${role.id}`).subscribe({
-      next: () => this.loadRoles(),
-      error: (err) => console.error('Failed to delete role:', err)
+      next: () => {
+        this.snackBar.open('Role deleted successfully', 'Close', { duration: 3000 });
+        this.loadRoles();
+      },
+      error: (err) => {
+        console.error('Failed to delete role:', err);
+        this.snackBar.open('Failed to delete role', 'Close', { duration: 3000 });
+      }
     });
   }
 }

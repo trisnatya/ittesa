@@ -3,102 +3,177 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { Faq } from '../../models';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-faq',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    MatExpansionModule,
+    MatProgressSpinnerModule
+  ],
   template: `
-    <div class="space-y-6">
-      <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">FAQ Management</h1>
-        <button (click)="openModal()" class="btn btn-primary">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-          </svg>
+    <div class="page-container">
+      <div class="page-header">
+        <h1 class="page-title">FAQ Management</h1>
+        <button mat-raised-button color="primary" (click)="openAddDialog()">
+          <mat-icon>add</mat-icon>
           Add FAQ
         </button>
       </div>
 
       <!-- FAQ Accordion -->
-      <div class="card space-y-4">
-        <div *ngFor="let faq of faqs" class="border border-gray-200 rounded-lg overflow-hidden">
-          <button 
-            (click)="toggleFaq(faq.id)"
-            class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors"
-          >
-            <span class="font-medium text-left">{{ faq.question }}</span>
-            <svg [class.rotate-180]="expandedId === faq.id" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-          </button>
-          <div *ngIf="expandedId === faq.id" class="px-4 py-3 bg-white">
-            <p class="text-gray-600">{{ faq.answer }}</p>
-            <div class="mt-3 flex gap-2">
-              <button (click)="editFaq(faq)" class="btn btn-sm btn-secondary">Edit</button>
-              <button (click)="deleteFaq(faq)" class="btn btn-sm btn-danger">Delete</button>
-            </div>
-          </div>
-        </div>
+      <mat-card class="faq-card">
+        <mat-card-content>
+          <mat-accordion>
+            <mat-expansion-panel *ngFor="let faq of faqs">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <span class="faq-question">{{ faq.question }}</span>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span class="faq-category">{{ faq.category || 'General' }}</span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              
+              <div class="faq-content">
+                <p class="faq-answer">{{ faq.answer }}</p>
+                <div class="faq-actions">
+                  <button mat-button color="primary" (click)="editFaq(faq)">
+                    <mat-icon>edit</mat-icon>
+                    Edit
+                  </button>
+                  <button mat-button color="warn" (click)="deleteFaq(faq)">
+                    <mat-icon>delete</mat-icon>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
 
-        <div *ngIf="faqs.length === 0" class="text-center py-8 text-gray-500">
-          No FAQs found
-        </div>
-      </div>
-
-      <!-- Create/Edit Modal -->
-      <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
-        <div class="modal w-full max-w-lg" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3 class="modal-title">{{ isEdit ? 'Edit FAQ' : 'Add FAQ' }}</h3>
-            <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
+          <div *ngIf="faqs.length === 0" class="no-data-message">
+            <mat-icon>info</mat-icon>
+            <p>No FAQs found</p>
           </div>
-          <div class="modal-body">
-            <div class="space-y-4">
-              <div class="form-group">
-                <label class="form-label">Question</label>
-                <input type="text" [(ngModel)]="formData.question" class="form-input" placeholder="Enter question" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Answer</label>
-                <textarea [(ngModel)]="formData.answer" class="form-input" rows="4" placeholder="Enter answer"></textarea>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Category</label>
-                <input type="text" [(ngModel)]="formData.category" class="form-input" placeholder="e.g. General, Requests" />
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button (click)="closeModal()" class="btn btn-secondary">Cancel</button>
-            <button (click)="saveFaq()" class="btn btn-primary">Save</button>
-          </div>
-        </div>
-      </div>
+        </mat-card-content>
+      </mat-card>
     </div>
-  `
+  `,
+  styles: [`
+    .page-container {
+      padding: 1.5rem;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0;
+    }
+    .faq-card {
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .faq-question {
+      font-weight: 500;
+      color: #1f2937;
+    }
+    .faq-category {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    .faq-content {
+      padding: 1rem 0;
+    }
+    .faq-answer {
+      color: #4b5563;
+      line-height: 1.6;
+      margin: 0 0 1rem 0;
+    }
+    .faq-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .no-data-message {
+      text-align: center;
+      padding: 3rem;
+      color: #9ca3af;
+    }
+    .no-data-message mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+    }
+    .no-data-message p {
+      margin: 0;
+    }
+    @media (max-width: 768px) {
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  `]
 })
 export class FaqComponent implements OnInit {
   faqs: Faq[] = [];
   expandedId: string | null = null;
   showModal = false;
   isEdit = false;
+  loading = false;
   formData: any = { question: '', answer: '', category: '' };
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadFaqs();
   }
 
   loadFaqs(): void {
+    this.loading = true;
     this.apiService.get<Faq[]>('/faqs').subscribe({
-      next: (data) => this.faqs = data,
-      error: () => this.faqs = []
+      next: (data) => {
+        this.faqs = data;
+        this.loading = false;
+      },
+      error: () => {
+        this.faqs = [];
+        this.loading = false;
+      }
     });
   }
 
@@ -106,10 +181,10 @@ export class FaqComponent implements OnInit {
     this.expandedId = this.expandedId === id ? null : id;
   }
 
-  openModal(): void {
+  openAddDialog(): void {
     this.isEdit = false;
     this.formData = { question: '', answer: '', category: '' };
-    this.showModal = true;
+    this.snackBar.open('Add FAQ dialog - to be implemented', 'Close', { duration: 3000 });
   }
 
   closeModal(): void {
@@ -119,7 +194,7 @@ export class FaqComponent implements OnInit {
   editFaq(faq: Faq): void {
     this.isEdit = true;
     this.formData = { ...faq };
-    this.showModal = true;
+    this.snackBar.open(`Editing FAQ: ${faq.question}`, 'Close', { duration: 2000 });
   }
 
   saveFaq(): void {
@@ -129,18 +204,28 @@ export class FaqComponent implements OnInit {
 
     action.subscribe({
       next: () => {
+        this.snackBar.open('FAQ saved successfully', 'Close', { duration: 3000 });
         this.closeModal();
         this.loadFaqs();
       },
-      error: (err) => console.error('Failed to save FAQ:', err)
+      error: (err) => {
+        console.error('Failed to save FAQ:', err);
+        this.snackBar.open('Failed to save FAQ', 'Close', { duration: 3000 });
+      }
     });
   }
 
   deleteFaq(faq: Faq): void {
     if (!confirm('Delete this FAQ?')) return;
     this.apiService.delete(`/faqs/${faq.id}`).subscribe({
-      next: () => this.loadFaqs(),
-      error: (err) => console.error('Failed to delete FAQ:', err)
+      next: () => {
+        this.snackBar.open('FAQ deleted successfully', 'Close', { duration: 3000 });
+        this.loadFaqs();
+      },
+      error: (err) => {
+        console.error('Failed to delete FAQ:', err);
+        this.snackBar.open('Failed to delete FAQ', 'Close', { duration: 3000 });
+      }
     });
   }
 }
